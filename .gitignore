@@ -1,0 +1,17 @@
+#Ignore local data and intermediate files
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data
+data/raw/
+data/processed/
+
+# OS
+.DS_Store
