@@ -2,6 +2,7 @@ import requests
 import pandas as pd
 from pathlib import Path
 
+#Assumption is XLSX files have been downloaded directly from AESO website.  For this project I downloaded the available 4 files to work with.
 #Load AESO data (download CSV load data)
 raw_dir = Path("../data/raw")
 df_aeso = pd.read_csv()
