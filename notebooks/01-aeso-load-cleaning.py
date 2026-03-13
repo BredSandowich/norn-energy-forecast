@@ -67,8 +67,7 @@ for i, (file, sheet) in enumerate(zip(files, sheets)):
             
     df = df[keep_cols]
 
-    # rename for consistency
-    # 5️⃣ Rename columns for consistency
+    # Rename columns for consistency
     rename_dict = {}
     if edmonton_col: rename_dict[edmonton_col] = "EDMONTON"
     if calgary_col: rename_dict[calgary_col] = "CALGARY"
