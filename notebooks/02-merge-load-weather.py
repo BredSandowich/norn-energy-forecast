@@ -80,6 +80,6 @@ proc_dir.mkdir(parents=True, exist_ok=True)
 df_merged.to_csv(proc_dir / "modelling_dataset.csv", index=False)
 
 #Diagnostic Checks for dataframe integrity
-print(df_merged.head())
-print(df_merged.isna().mean())
-print(df_merged.shape)
+#print(df_merged.head())
+#print(df_merged.isna().mean())
+#print(df_merged.shape)
