@@ -77,6 +77,11 @@ for i, (file, sheet) in enumerate(zip(files, sheets)):
     dfs.append(df)
 
 # combine all files
-df_load = pd.concat(dfs, ignore_index=True)
+df_load_clean = pd.concat(dfs, ignore_index=True)
+
+processed_dir = raw_dir.parent / "processed"
+processed_dir.mkdir(parents =True, exist_ok=True)
+
+df_load_clean.to_csv(processed_dir / "aeso_load_clean.csv", index=False)
 
 #print(df_load.head())
