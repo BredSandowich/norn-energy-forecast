@@ -1,3 +1,6 @@
+#NOT WORKING PROPERLY
+#TO-DO:  Fix so datapull from env Canada works properly
+
 from env_canada import ECWeather
 import pandas as pd
 from pathlib import Path
