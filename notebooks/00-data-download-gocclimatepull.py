@@ -2,8 +2,9 @@ import pandas as pd
 import requests
 from datetime import datetime
 from io import StringIO
+from pathlib import Path
 
-
+raw_dir = Path("data/raw")
 #50149 is Edmonton International Airport
 #50430 is Calgary International Airport
 stations = {
@@ -11,7 +12,7 @@ stations = {
     "Calgary": 50430
 }
 
-start_year = 2021
+start_year = 2011
 end_year = 2024
 
 url = "https://climate.weather.gc.ca/climate_data/bulk_data_e.html"
@@ -48,7 +49,7 @@ for city, station_id in stations.items():
             
 if datasets:
     final_df = pd.concat(datasets, ignore_index =True)
-    final_df.to_csv("historical_weather_datapull.csv", index= False)
+    final_df.to_csv(raw_dir /"historical_weather_datapull.csv", index= False)
     print("\nSaved to historical_weather_datapull.csv")
 else:
     print("No data downloaded.")
