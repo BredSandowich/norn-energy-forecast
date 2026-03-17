@@ -39,7 +39,8 @@ def forecast_evaluation(y_true, y_pred):
     mape = np.mean(np.abs(error / y_true)) * 100
     return error, mae, rmse, mape
 
-#Forecast Evaluation
+#
+# Forecast Evaluation
 #Start with 24 hour forecast
 horizon = 24
 y = edmonton_df['load_edm_mw']
@@ -118,6 +119,15 @@ moving_avg_flat_row = pd.DataFrame({'Model': ['Moving Average (Flat)'], "Error":
 metrics_df = pd.concat([metrics_df, moving_avg_flat_row], ignore_index=True)
 print(metrics_df)
 
+#Baseline forecast 5: Triple Exponential Smoothing (Holt-Winters)
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
+hw_model = ExponentialSmoothing(train_naive, seasonal='add', seasonal_periods=24).fit()
+hw_forecast = hw_model.forecast(horizon)
+hw_results = forecast_evaluation(test_naive, hw_forecast)
+hw_row = pd.DataFrame({'Model': ['Holt-Winters'], "Error": [hw_results[0]], 'MAE': [hw_results[1]], 'RMSE': [hw_results[2]], 'MAPE': [hw_results[3]]})
+metrics_df = pd.concat([metrics_df, hw_row], ignore_index=True)
+print(metrics_df)
+
 
 #Plot comparison of results
 plt.figure(figsize=(10, 5))
@@ -126,9 +136,76 @@ plt.plot(naive.index, naive, label='Seasonal Naive Forecast', linestyle='--', ma
 plt.plot(moving_avg_forecast.index, moving_avg_forecast, label='Rolling Moving Average Forecast', linestyle='--', marker='s')
 plt.plot(naive_flat.index, naive_flat, label='Naive (Flat) Forecast', linestyle='-.', marker='^')
 plt.plot(moving_avg_flat_forecast.index, moving_avg_flat_forecast, label='Moving Average (Flat) Forecast', linestyle='-.', marker='v')
+plt.plot(hw_forecast.index, hw_forecast, label='Holt-Winters Forecast', linestyle=':', marker='d')
 plt.title('Forecast Comparison')
 plt.xlabel('Time')
 plt.ylabel('Load (MW)')
 plt.legend()
 plt.tight_layout()
 plt.savefig('notebooks/forecast_comparison.png')
+
+
+#Bootstrapping top two baseline forecasts (Seasonal Naive and Rolling Moving Average) from MAPE results
+from sklearn.utils import resample
+n_bootstraps = 500
+bootstrap_results = []
+for i in range(n_bootstraps):
+    indices = resample(range(len(test_naive)), replace=True, n_samples=len(test_naive))
+    test_sample = test_naive.iloc[indices]
+    naive_sample = naive.iloc[indices]
+    moving_avg_sample = moving_avg_forecast.iloc[indices]
+    
+    naive_sample_results = forecast_evaluation(test_sample, naive_sample)
+    moving_avg_sample_results = forecast_evaluation(test_sample, moving_avg_sample)
+    
+    bootstrap_results.append({
+        'naive_mape': naive_sample_results[3],
+        'moving_avg_mape': moving_avg_sample_results[3]
+    })
+bootstrap_df = pd.DataFrame(bootstrap_results)
+plt.figure(figsize=(10, 5))
+plt.hist(bootstrap_df['naive_mape'], bins=30, alpha=0.5, label='Seasonal Naive MAPE')
+plt.hist(bootstrap_df['moving_avg_mape'], bins=30, alpha=0.5, label='Rolling Moving Average MAPE')
+plt.title('Bootstrap Distribution of MAPE for Top Baseline Models')
+plt.xlabel('MAPE')
+plt.ylabel('Frequency')
+plt.legend()
+plt.tight_layout()
+plt.savefig('notebooks/bootstrap_mape_comparison.png')
+
+
+#Combining top two forecasts into a simple ensemble by averaging their predictions
+ensemble_forecast = (naive + moving_avg_forecast) / 2
+ensemble_results = forecast_evaluation(test_naive, ensemble_forecast)
+ensemble_row = pd.DataFrame({'Model': ['Ensemble (Naive + Moving Avg)'], "Error": [ensemble_results[0]], 'MAE': [ensemble_results[1]], 'RMSE': [ensemble_results[2]], 'MAPE': [ensemble_results[3]]})
+metrics_df = pd.concat([metrics_df, ensemble_row], ignore_index=True)
+print(metrics_df)   
+
+# Get MAPE values for plotting
+naive_mape = metrics_df.loc[metrics_df['Model'] == 'Seasonal Naive', 'MAPE'].values[0]
+moving_avg_mape = metrics_df.loc[metrics_df['Model'] == 'Rolling Moving Average', 'MAPE'].values[0]
+ensemble_mape = metrics_df.loc[metrics_df['Model'] == 'Ensemble (Naive + Moving Avg)', 'MAPE'].values[0]
+
+#Ensemble forecast 2: Weighted average based on inverse MAPE
+total_inverse_mape = (1 / naive_mape) + (1 / moving_avg_mape)
+naive_weight = (1 / naive_mape) / total_inverse_mape
+moving_avg_weight = (1 / moving_avg_mape) / total_inverse_mape
+weighted_ensemble_forecast = (naive * naive_weight) + (moving_avg_forecast * moving_avg_weight)
+weighted_ensemble_results = forecast_evaluation(test_naive, weighted_ensemble_forecast)
+weighted_ensemble_row = pd.DataFrame({'Model': ['Weighted Ensemble'], "Error": [weighted_ensemble_results[0]], 'MAE': [weighted_ensemble_results[1]], 'RMSE': [weighted_ensemble_results[2]], 'MAPE': [weighted_ensemble_results[3]]})
+metrics_df = pd.concat([metrics_df, weighted_ensemble_row], ignore_index=True)
+print(metrics_df)   
+
+#Plot comparison of ensemble forecast against individual baselines
+plt.figure(figsize=(10, 5))
+plt.plot(test_naive.index, test_naive, label='Actual Load', marker='o')
+plt.plot(naive.index, naive, label=f'Seasonal Naive Forecast (MAPE: {naive_mape:.2f}%)', linestyle='--', marker='x')
+plt.plot(moving_avg_forecast.index, moving_avg_forecast, label=f'Rolling Moving Average Forecast (MAPE: {moving_avg_mape:.2f}%)', linestyle='--', marker='s')
+plt.plot(ensemble_forecast.index, ensemble_forecast, label=f'Ensemble Forecast (MAPE: {ensemble_mape:.2f}%)', linestyle='-.', marker='d')
+plt.plot(weighted_ensemble_forecast.index, weighted_ensemble_forecast, label=f'Weighted Ensemble Forecast (MAPE: {weighted_ensemble_results[3]:.2f}%)', linestyle=':', marker='^')
+plt.title('Ensemble Forecast Comparison')
+plt.xlabel('Time')
+plt.ylabel('Load (MW)')
+plt.legend()
+plt.tight_layout()
+plt.savefig('notebooks/ensemble_forecast_comparison.png')
