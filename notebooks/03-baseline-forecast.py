@@ -39,7 +39,6 @@ def forecast_evaluation(y_true, y_pred):
     mape = np.mean(np.abs(error / y_true)) * 100
     return error, mae, rmse, mape
 
-#
 # Forecast Evaluation
 #Start with 24 hour forecast
 horizon = 24
