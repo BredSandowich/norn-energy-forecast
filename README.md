@@ -25,7 +25,7 @@ I figured this would be a good portfolio project after coming across a job posti
 
 ## Project Structure
 
-- `data/` (Urd - past) : raw AESO load and GOC weather data (not committed to repo), and processed modelling datasets.
+- `data/` (Urd - past) : raw AESO load and GOC weather data (not committed to repo. AESO load data currently requires manual download; future work will include automated ingestion from AESO if available), and processed modelling datasets.
 - `notebooks/` (Verðandi & Skuld – present & future) : exploratory analysis, feature engineering, model training experiments, and forecast analysis notebooks..
 - `src/` : reusable Python scripts for data loading and prep, feature engineering, and modelling (as well as forecasting pipelines in future developments).
 - `models/` : serialized model artifacts
