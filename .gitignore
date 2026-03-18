@@ -1,10 +1,20 @@
 #Ignore local data and intermediate files
 
+#Environments
+.env
+*.env
+
+#Logs
+*.logs
+
 # Python
 __pycache__/
 *.py[cod]
 .venv/
 venv/
+*.egg-info/
+dist/
+build/
 
 # Jupyter
 .ipynb_checkpoints/
@@ -14,3 +24,8 @@ data/raw/
 
 # OS
 .DS_Store
+Thumbs.db
+
+#IDEs
+.vscode/
+.idea/
