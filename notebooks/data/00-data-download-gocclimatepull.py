@@ -43,19 +43,19 @@ for city, station_id in stations.items():
                 "timeframe": 1, #hourly
                 }
         
-        try:
-            r = requests.get(url, params=params)
-            if "Station Name" not in r.text:
-                print(f"No data for {city} for {year}-{month}")
-                continue
+            try:
+                r = requests.get(url, params=params)
+                if "Station Name" not in r.text:
+                    print(f"No data for {city} for {year}-{month}")
+                    continue
+                
+                df = pd.read_csv(StringIO(r.text))
+                df["City"] = city
+                datasets.append(df)
+                print(f"{city} for {year}-{month:02d} months downloaded")
             
-            df = pd.read_csv(StringIO(r.text))
-            df["City"] = city
-            datasets.append(df)
-            print(f"{city} for {year}-{month:02d} months downloaded")
-        
-        except Exception as e:
-            print(f"Error {city} for {year}-{month:02d}: {e}")
+            except Exception as e:
+                print(f"Error {city} for {year}-{month:02d}: {e}")
             
 if datasets:
     final_df = pd.concat(datasets, ignore_index=True)
