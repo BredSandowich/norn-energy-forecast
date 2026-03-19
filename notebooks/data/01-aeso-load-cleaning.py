@@ -1,8 +1,17 @@
 import pandas as pd
 from pathlib import Path
 import numpy as np
+import yaml
 
-raw_dir = Path("data/raw")
+## If loading without yaml
+#raw_dir = Path("data/raw")
+
+#Load config
+with open("config/config.yaml") as f:
+    config = yaml.safe_load(f)
+raw_dir = Path(config["paths"]["raw_data"])
+processed_dir = Path(config(["paths"]["processed_data"])
+processed_dir.mkdir(parents=True, exist_ok=True)
 
 files = [
     "Hourly-load-by-area-and-region-2011-to-2017-.xlsx",
@@ -32,18 +41,13 @@ for i, (file, sheet) in enumerate(zip(files, sheets)):
 
     #Inspected and need to adjust/pre-clean date time between the four files to create a DATETIME column
     if "DATE" in df.columns and "HOUR ENDING" in df.columns:
-
         # keep HOUR ENDING as-is for EDA (string)
         df["HOUR_ENDING_RAW"] = df["HOUR ENDING"].astype(str)
-
         # convert valid numbers for datetime calculation
         df["HOUR_ENDING_NUM"] = pd.to_numeric(df["HOUR ENDING"], errors="coerce")
-
         # only create datetime where HOUR_ENDING_NUM is valid
         df["DATETIME"] = pd.to_datetime(df["DATE"], errors="coerce") + pd.to_timedelta(df["HOUR_ENDING_NUM"] - 1, unit="h")
-
     elif "DT_MST" in df.columns:
-
         df["DATETIME"] = pd.to_datetime(df["DT_MST"], errors="coerce")
 
     # standardize Edmonton / Calgary columns, keeping only columns of interest (ie Edmonton, Calgary, date and time)
@@ -78,9 +82,14 @@ for i, (file, sheet) in enumerate(zip(files, sheets)):
 # combine all files
 df_load_clean = pd.concat(dfs, ignore_index=True)
 
-processed_dir = raw_dir.parent / "processed"
-processed_dir.mkdir(parents =True, exist_ok=True)
+#Save cleaned files data
+## If not using yaml
+#processed_dir = raw_dir.parent / "processed"
+#processed_dir.mkdir(parents =True, exist_ok=True)
 
-df_load_clean.to_csv(processed_dir / "aeso_load_clean.csv", index=False)
+output_path = processed_dir / "aeso_load_clean.csv"
+df_load_clean.to_csv(output_path, index=False)
 
 #print(df_load.head())
+print(f"AESO load data cleaned and ssaved to {output_path}")
+print(f"Rows: {df_load_clean.shape[0]}, Columns: {df_load_clean.shape[1]")
