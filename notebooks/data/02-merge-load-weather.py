@@ -1,19 +1,30 @@
 import pandas as pd
 from pathlib import Path
+import yaml
 
-data_dir = Path("data")
-raw_dir = Path("data/raw")
-proc_dir = Path("data/processed")
+##If not using yaml
+#data_dir = Path("data")
+#raw_dir = Path("data/raw")
+#proc_dir = Path("data/processed")
+
+#Load config
+with opn("config/config.yaml") as f:
+    config = yaml.safe_load(f)
+
+raw_dir = Path(config["paths"]["raw_data"])
+proc_dir = Path(config["paths"]["processed_data"])
+proc_dir.mkdir(parents=True, exist_ok=True)
 
 # Load weather data file
 df_weather = pd.read_csv(raw_dir / "historical_weather_datapull.csv", encoding="latin1", low_memory=False)
 
-#Change weather data's Date column to DATETIME, floor to hour for merging to load dataS
+#Change/standardize weather data's Date column to DATETIME, floor to hour for merging to load data
 df_weather["DATETIME"] = (pd.to_datetime(df_weather["Date/Time (LST)"], errors="coerce").dt.floor("h"))
-
 #print(df_weather.columns)
 #print(df_weather.columns.tolist())
+
 #Rename column names (UTF-8) for clarity and consistency, check column names in python compiler with print statement above
+df_weather = df_weather.rename(columns=lambda x: x.strip())
 df_weather = df_weather.rename(columns={
     "Temp (Â°C)": "temp_C",
     "Rel Hum (%)": "rel_hum_pct",
@@ -63,7 +74,7 @@ df_cal = df_cal.rename(columns={
 }).drop(columns=["city"])
 
 #Merge Data sets
-df_merged = pd.merge_asof(df_load, df_edm, on="DATETIME", direction = "backward")
+df_merged = pd.merge_asof(df_load.sort_values("DATETIME"), df_edm.sort_values("DATETIME"), on="DATETIME", direction = "backward")
 df_merged = pd.merge_asof(df_merged, df_cal[["DATETIME","temp_cgy_C","rel_hum_cgy_pct","wind_cgy_kmh"]], on="DATETIME", direction = "backward")
 
 #Add some time features for exploration
@@ -76,10 +87,17 @@ df_merged["is_weekend"] = df_merged["day_of_week"].isin([5,6]).astype(int)
 df_merged = df_merged.dropna(subset=["temp_edm_C", "temp_cgy_C"])
 
 #Save output
-proc_dir.mkdir(parents=True, exist_ok=True)
-df_merged.to_csv(proc_dir / "modelling_dataset.csv", index=False)
+##Without yaml
+#proc_dir.mkdir(parents=True, exist_ok=True)
+#df_merged.to_csv(proc_dir / "modelling_dataset.csv", index=False)
+
+output_path = proc_dir / "modelling_dataset.csv"
+df_merged.to_csv(output_path, index=False)
 
 #Diagnostic Checks for dataframe integrity
 #print(df_merged.head())
 #print(df_merged.isna().mean())
 #print(df_merged.shape)
+
+print(f"Saved merged dataset to {output_path)")
+print(f"Shape: {df_merged.shape}")
