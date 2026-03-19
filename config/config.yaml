@@ -1,0 +1,13 @@
+paths:
+  raw_data: data/raw/
+  processed_data: data/processed/
+  models: models/
+  forecasts: forecasts/
+
+data:
+  target_col: 'Load'
+  datetime_col: 'Datetime'
+
+model:
+  random_state: 42
+  test_size: 0.2
