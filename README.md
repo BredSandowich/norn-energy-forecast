@@ -13,7 +13,7 @@ I figured this would be a good portfolio project after coming across a job posti
 - Explore seasonality, daily/weekly patterns, and trends.
 - Perform feature engineering for time-series energy data using Python.
 - Build baseline and Machine Learning models for short-term load forecasting.
-- Focus on utilizing Pythong to train machine learning models for hourly load forecasting.
+- Focus on utilizing Python to train machine learning models for hourly load forecasting.
 
 ## Future add-on's
 
@@ -42,8 +42,8 @@ I figured this would be a good portfolio project after coming across a job posti
 4. source .venv/bin/activate #For Windows: .venv\Scripts\activate
 5. pip install -r requirements.txt
 
-## Dependencis
-```text
+## Dependencies
+text
 pandas
 numpy
 matplotlib
@@ -51,3 +51,10 @@ seaborn
 scikit-learn
 jupyter
 requests
+```
+ 
+## Results
+- Baseline MAE:
+- Model MAE:
+- MAPE:
+- RMSE:
