@@ -4,6 +4,7 @@ from datetime import datetime
 from io import StringIO
 from pathlib import Path
 import yaml
+import time
 
 ## If not loading yaml config use this to pull data
 # raw_dir = Path("data/raw")
@@ -61,6 +62,6 @@ if datasets:
     final_df = pd.concat(datasets, ignore_index=True)
     final_csv_path = raw_dir / "historical_weather_datapull.csv"
     final_df.to_csv(final_csv_path, index= False)
-    print("\nSaved to {final_csv_path}")
+    print(f"\nSaved to {final_csv_path}")
 else:
     print("No data downloaded.")
