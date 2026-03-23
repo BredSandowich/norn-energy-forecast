@@ -10,7 +10,7 @@ import yaml
 with open("config/config.yaml") as f:
     config = yaml.safe_load(f)
 raw_dir = Path(config["paths"]["raw_data"])
-processed_dir = Path(config(["paths"]["processed_data"])
+processed_dir = Path(config["paths"]["processed_data"])
 processed_dir.mkdir(parents=True, exist_ok=True)
 
 files = [
@@ -79,6 +79,11 @@ for i, (file, sheet) in enumerate(zip(files, sheets)):
 
     dfs.append(df)
 
+#DataFrame checks
+print(f"Date range: {df_load_clean['DATETIME'].min()} to {df_load_clean['DATETIME'].max()}")
+print(f"Missing values:\n{df_load_clean.isna().sum()}")
+print(f"Duplicates: {df_load_clean.duplicated().sum()}")
+
 # combine all files
 df_load_clean = pd.concat(dfs, ignore_index=True)
 
@@ -92,4 +97,4 @@ df_load_clean.to_csv(output_path, index=False)
 
 #print(df_load.head())
 print(f"AESO load data cleaned and ssaved to {output_path}")
-print(f"Rows: {df_load_clean.shape[0]}, Columns: {df_load_clean.shape[1]")
+print(f"Rows: {df_load_clean.shape[0]}, Columns: {df_load_clean.shape[1]}")
