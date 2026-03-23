@@ -18,8 +18,8 @@ proc_dir.mkdir(parents=True, exist_ok=True)
 # Load weather data file
 df_weather = pd.read_csv(raw_dir / "historical_weather_datapull.csv", encoding="latin1", low_memory=False)
 
-#Change/standardize weather data's Date column to DATETIME, floor to hour for merging to load data
-df_weather["DATETIME"] = (pd.to_datetime(df_weather["Date/Time (LST)"], errors="coerce").dt.floor("h"))
+#Change/standardize weather data's Date column to DATETIME
+df_weather["Datetime"] = pd.to_datetime(df_weather["Date/Time (LST)"], errors="coerce")
 #print(df_weather.columns)
 #print(df_weather.columns.tolist())
 
@@ -34,7 +34,7 @@ df_weather = df_weather.rename(columns={
 
 #Keep relevant columns with features of interested for project ie) Datetime, city, temp_c, relative humidity, wind speed
 df_weather = df_weather[[
-    "DATETIME",
+    "Datetime",
     "city",
     "temp_C",
     "rel_hum_pct",
@@ -42,19 +42,20 @@ df_weather = df_weather[[
 ]]
 
 #Aggregate for duplicate check
-df_weather = df_weather.groupby(["DATETIME","city"], as_index=False).agg({"temp_C":"mean",
-        "rel_hum_pct":"mean",
-        "wind_kmh":"mean"
+df_weather = df_weather.groupby(["Datetime","city"], as_index=False).agg({
+    "temp_C":"mean",
+    "rel_hum_pct":"mean",
+    "wind_kmh":"mean"
     })
     
 #Load in the AESO Alberta load data
-df_load = pd.read_csv(proc_dir / "aeso_load_clean.csv", parse_dates=["DATETIME"])
-df_load["DATETIME"] = pd.to_datetime(df_load["DATETIME"]).dt.floor("h")
-df_load = df_load[df_load["DATETIME"] >= '2011-12-01']
-df_load = df_load.sort_values("DATETIME").reset_index(drop=True)   
+df_load = pd.read_csv(proc_dir / "aeso_load_clean.csv", parse_dates=["Datetime"])
+df_load["Datetime"] = pd.to_datetime(df_load["Datetime"])
+df_load = df_load[df_load["Datetime"] >= df_weather["Datetime"].min()]
+df_load = df_load.sort_values("Datetime").reset_index(drop=True)   
 
 #Correct timestamp of weather/load discrepancy using merge_asof
-df_weather = df_weather.sort_values("DATETIME")
+df_weather = df_weather.sort_values("Datetime")
 
 #Split data by city
 df_edm = df_weather[df_weather["city"] == "Edmonton"].copy()
@@ -73,18 +74,51 @@ df_cal = df_cal.rename(columns={
     "wind_kmh": "wind_cgy_kmh"
 }).drop(columns=["city"])
 
-#Merge Data sets --> used backwards fill to amtch each load meaasurement with the most recent weather observation
-df_merged = pd.merge_asof(df_load.sort_values("DATETIME"), df_edm.sort_values("DATETIME"), on="DATETIME", direction = "backward")
-df_merged = pd.merge_asof(df_merged, df_cal[["DATETIME","temp_cgy_C","rel_hum_cgy_pct","wind_cgy_kmh"]], on="DATETIME", direction = "backward")
+#Adjust for difference in weather data start dates for each city
+weather_start = max(df_edm["Datetime"].min(), df_cal["Datetime"].min())
+df_load = df_load[df_load["Datetime"] >= weather_start].copy()
+
+#Merge Data sets
+df_merged = pd.merge_asof(df_load.sort_values("Datetime"), df_edm.sort_values("Datetime"), on="Datetime", direction = "backward")
+df_merged = pd.merge_asof(df_merged, df_cal[["Datetime","temp_cgy_C","rel_hum_cgy_pct","wind_cgy_kmh"]], on="Datetime", direction = "backward")
 
 #Add some time features for exploration
-df_merged["hour"] = df_merged["DATETIME"].dt.hour
-df_merged["day_of_week"] = df_merged["DATETIME"].dt.dayofweek
-df_merged["month"] = df_merged["DATETIME"].dt.month
+df_merged["hour"] = df_merged["Datetime"].dt.hour
+df_merged["day_of_week"] = df_merged["Datetime"].dt.dayofweek
+df_merged["month"] = df_merged["Datetime"].dt.month
 df_merged["is_weekend"] = df_merged["day_of_week"].isin([5,6]).astype(int)
 
-#Drop Na Values from weather pull
-df_merged = df_merged.dropna(subset=["temp_edm_C", "temp_cgy_C"])
+##Drop Na Values from weather pull
+#df_merged = df_merged.dropna(subset=["temp_edm_C", "temp_cgy_C"])
+#print(df_merged.isna().mean())
+
+#Add a flag for filling in missing weather data
+# Create flags for Edmonton and Calgary weather
+df_merged["edm_weather_missing"] = df_merged[["temp_edm_C", "rel_hum_edm_pct", "wind_edm_kmh"]].isna().any(axis=1).astype(int)
+df_merged["cgy_weather_missing"] = df_merged[["temp_cgy_C", "rel_hum_cgy_pct", "wind_cgy_kmh"]].isna().any(axis=1).astype(int)
+
+#Interpolate the gaps in temperature data instead of dropping them for future feature modelling in timeseeries
+df_merged["temp_edm_C"] = df_merged["temp_edm_C"].interpolate(limit=6)
+df_merged["temp_cgy_C"] = df_merged["temp_cgy_C"].interpolate(limit=6)
+
+df_merged["rel_hum_edm_pct"] = df_merged["rel_hum_edm_pct"].interpolate(limit=6)
+df_merged["rel_hum_cgy_pct"] = df_merged["rel_hum_cgy_pct"].interpolate(limit=6)
+
+df_merged["wind_edm_kmh"] = df_merged["wind_edm_kmh"].interpolate(limit=6)
+df_merged["wind_cgy_kmh"] = df_merged["wind_cgy_kmh"].interpolate(limit=6)
+
+#print(df_merged.isna().mean())
+
+#Forward fill some more data gaps in weather information
+df_merged["temp_edm_C"] = df_merged["temp_edm_C"].ffill()
+df_merged["temp_cgy_C"] = df_merged["temp_cgy_C"].ffill()
+
+df_merged["rel_hum_edm_pct"] = df_merged["rel_hum_edm_pct"].ffill()
+df_merged["rel_hum_cgy_pct"] = df_merged["rel_hum_cgy_pct"].ffill()
+
+df_merged["wind_edm_kmh"] = df_merged["wind_edm_kmh"].ffill()
+df_merged["wind_cgy_kmh"] = df_merged["wind_cgy_kmh"].ffill()
+print(df_merged.isna().mean())
 
 #Save output
 ##Without yaml
