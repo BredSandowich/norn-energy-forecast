@@ -79,13 +79,27 @@ for i, (file, sheet) in enumerate(zip(files, sheets)):
 
     dfs.append(df)
 
+# combine all files
+df_load_clean = pd.concat(dfs, ignore_index=True)
+
+#Rename column for merging with weather data later
+df_load_clean = df_load_clean.rename(columns={"DATETIME":"Datetime"})
+df_load_clean = df_load_clean.sort_values("Datetime")
+df_load_clean = df_load_clean.drop_duplicates(subset=["Datetime"])
+
 #DataFrame checks
-print(f"Date range: {df_load_clean['DATETIME'].min()} to {df_load_clean['DATETIME'].max()}")
+print(f"Date range: {df_load_clean['Datetime'].min()} to {df_load_clean['Datetime'].max()}")
 print(f"Missing values:\n{df_load_clean.isna().sum()}")
 print(f"Duplicates: {df_load_clean.duplicated().sum()}")
 
-# combine all files
-df_load_clean = pd.concat(dfs, ignore_index=True)
+#Dataframe time checks
+expected_range = pd.date_range(
+    start = df_load_clean["Datetime"].min(),
+    end = df_load_clean["Datetime"].max(),
+    freq = "H"
+)
+missing_hours = expected_range.differences(df_load_clean["Datetime"])
+print(f"Missing hours: {len(missing_hours)}")
 
 #Save cleaned files data
 ## If not using yaml
@@ -96,5 +110,5 @@ output_path = processed_dir / "aeso_load_clean.csv"
 df_load_clean.to_csv(output_path, index=False)
 
 #print(df_load.head())
-print(f"AESO load data cleaned and ssaved to {output_path}")
+print(f"AESO load data cleaned and saved to {output_path}")
 print(f"Rows: {df_load_clean.shape[0]}, Columns: {df_load_clean.shape[1]}")

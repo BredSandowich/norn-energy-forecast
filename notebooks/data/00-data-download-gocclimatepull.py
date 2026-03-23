@@ -45,12 +45,12 @@ for city, station_id in stations.items():
                 "timeframe": 1, #hourly
                 }
         
-            for attempt in range(1,max_retries + 1):    
+            for attempt in range(1, max_retries + 1):    
                 try:
                     r = requests.get(url, params=params, timeout = 10)
                     if "Station Name" not in r.text:
                         print(f"No data for {city} for {year}-{month}")
-                        continue
+                        break
                     
                     df = pd.read_csv(StringIO(r.text))
                     df.columns = df.columns.str.replace("Â", "", regex=False)
@@ -62,6 +62,8 @@ for city, station_id in stations.items():
                     
                     datasets.append(df)
                     print(f"{city} for {year}-{month:02d} months downloaded")
+
+                    break
                 
                 except Exception as e:
                     print(f"Error {city} for {year}-{month:02d}: {e}")
