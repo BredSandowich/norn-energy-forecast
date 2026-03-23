@@ -86,6 +86,7 @@ df_load_clean = pd.concat(dfs, ignore_index=True)
 df_load_clean = df_load_clean.rename(columns={"DATETIME":"Datetime"})
 df_load_clean = df_load_clean.sort_values("Datetime")
 df_load_clean = df_load_clean.drop_duplicates(subset=["Datetime"])
+df_load_clean = df_load_clean.dropna(subset=["Datetime"])
 
 #DataFrame checks
 print(f"Date range: {df_load_clean['Datetime'].min()} to {df_load_clean['Datetime'].max()}")
@@ -96,10 +97,33 @@ print(f"Duplicates: {df_load_clean.duplicated().sum()}")
 expected_range = pd.date_range(
     start = df_load_clean["Datetime"].min(),
     end = df_load_clean["Datetime"].max(),
-    freq = "H"
+    freq = "h"
 )
-missing_hours = expected_range.differences(df_load_clean["Datetime"])
+missing_hours = expected_range.difference(df_load_clean["Datetime"])
 print(f"Missing hours: {len(missing_hours)}")
+
+#investigate where missing rows were in data
+missing_rows_edm = df_load_clean[df_load_clean["EDMONTON"].isna()]
+missing_rows_cgy = df_load_clean[df_load_clean["CALGARY"].isna()]
+print(f"Missing Edmonton times interpolated: {missing_rows_edm}")
+print(f"Missing Calgary times interpolated: {missing_rows_cgy}")
+
+#Missing Time corrections to data with interpolation
+full_range= pd.date_range(
+    start = df_load_clean["Datetime"].min(),
+    end = df_load_clean["Datetime"].max(),
+    freq = "h"
+)
+df_load_clean =df_load_clean.set_index("Datetime").reindex(full_range)
+df_load_clean.index.name = "Datetime"
+df_load_clean = df_load_clean.reset_index()
+df_load_clean["EDMONTON"] = df_load_clean["EDMONTON"].interpolate(method="linear")
+df_load_clean["CALGARY"] = df_load_clean["CALGARY"].interpolate(method="linear")
+
+
+#No longer need this row
+df_load_clean = df_load_clean.drop(columns=["HOUR_ENDING_RAW"])
+
 
 #Save cleaned files data
 ## If not using yaml
