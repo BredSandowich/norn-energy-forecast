@@ -8,7 +8,7 @@ import yaml
 #proc_dir = Path("data/processed")
 
 #Load config
-with opn("config/config.yaml") as f:
+with open("config/config.yaml") as f:
     config = yaml.safe_load(f)
 
 raw_dir = Path(config["paths"]["raw_data"])
@@ -73,7 +73,7 @@ df_cal = df_cal.rename(columns={
     "wind_kmh": "wind_cgy_kmh"
 }).drop(columns=["city"])
 
-#Merge Data sets
+#Merge Data sets --> used backwards fill to amtch each load meaasurement with the most recent weather observation
 df_merged = pd.merge_asof(df_load.sort_values("DATETIME"), df_edm.sort_values("DATETIME"), on="DATETIME", direction = "backward")
 df_merged = pd.merge_asof(df_merged, df_cal[["DATETIME","temp_cgy_C","rel_hum_cgy_pct","wind_cgy_kmh"]], on="DATETIME", direction = "backward")
 
@@ -99,5 +99,5 @@ df_merged.to_csv(output_path, index=False)
 #print(df_merged.isna().mean())
 #print(df_merged.shape)
 
-print(f"Saved merged dataset to {output_path)")
+print(f"Saved merged dataset to {output_path}")
 print(f"Shape: {df_merged.shape}")
