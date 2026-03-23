@@ -13,3 +13,4 @@ These files are required for reproducing the project:
 1. Go to the AESO data request URL.
 2. Click each file hyperlink to download it.
 3. Save the files in `data/raw/`.
+4. Run: python src/data_prep.py to consolidate into one working file.
