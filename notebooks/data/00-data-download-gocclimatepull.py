@@ -25,10 +25,11 @@ stations = {
 
 start_year = 2011
 end_year = 2024
-
 url = "https://climate.weather.gc.ca/climate_data/bulk_data_e.html"
 
 datasets = []
+#Added retries incase server error on datarequest pull
+max_retries = 3
 
 for city, station_id in stations.items():
     print(f"Fetching data for {city}")
@@ -44,22 +45,38 @@ for city, station_id in stations.items():
                 "timeframe": 1, #hourly
                 }
         
-            try:
-                r = requests.get(url, params=params)
-                if "Station Name" not in r.text:
-                    print(f"No data for {city} for {year}-{month}")
-                    continue
+            for attempt in range(1,max_retries + 1):    
+                try:
+                    r = requests.get(url, params=params, timeout = 10)
+                    if "Station Name" not in r.text:
+                        print(f"No data for {city} for {year}-{month}")
+                        continue
+                    
+                    df = pd.read_csv(StringIO(r.text))
+                    df.columns = df.columns.str.replace("Â", "", regex=False)
+                    df["Datetime"] = pd.to_datetime(df["Date/Time (LST)"], errors="coerce")
+                    if df["Datetime"].isna().any():
+                        print(f"Warning: NaT values found for {city} {year}-{month:02d}")  
+                    df["City"] = city
+                    df["StationID"]= station_id
+                    
+                    datasets.append(df)
+                    print(f"{city} for {year}-{month:02d} months downloaded")
                 
-                df = pd.read_csv(StringIO(r.text))
-                df["City"] = city
-                datasets.append(df)
-                print(f"{city} for {year}-{month:02d} months downloaded")
-            
-            except Exception as e:
-                print(f"Error {city} for {year}-{month:02d}: {e}")
+                except Exception as e:
+                    print(f"Error {city} for {year}-{month:02d}: {e}")
+                    if attempt < max_retries:
+                        print(f"Retrying in 5 seconds")
+                        time.sleep(5)
+                    else:
+                        print(f"Failed, skipping to next month")
+                
+                finally:
+                    time.sleep(0.5)
             
 if datasets:
     final_df = pd.concat(datasets, ignore_index=True)
+    final_df = final_df.drop_duplicates()
     final_csv_path = raw_dir / "historical_weather_datapull.csv"
     final_df.to_csv(final_csv_path, index= False)
     print(f"\nSaved to {final_csv_path}")
