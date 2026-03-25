@@ -69,11 +69,12 @@ def merge_weather_load(df_weather: pd.DataFrame, df_load: pd.DataFrame) -> pd.Da
     
     df_merged = pd.merge_asof(df_merged, df_cal[["Datetime", "temp_cgy_C", "rel_hum_cgy_pct", "wind_cgy_kmh"]].sort_values("Datetime"), on="Datetime", direction="backward")
     
-    # Add time features
+    '''# Add time features moved to feature engineering, can uncomment if wanted for data exploration
     df_merged["hour"] = df_merged["Datetime"].dt.hour
     df_merged["day_of_week"] = df_merged["Datetime"].dt.dayofweek
     df_merged["month"] = df_merged["Datetime"].dt.month
     df_merged["is_weekend"] = df_merged["day_of_week"].isin([5,6]).astype(int)
+    '''
     
     # Flags for missing weather
     df_merged["edm_weather_missing"] = df_merged[["temp_edm_C", "rel_hum_edm_pct", "wind_edm_kmh"]].isna().any(axis=1).astype(int)

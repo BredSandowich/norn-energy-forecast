@@ -31,19 +31,34 @@ df = df.rename(columns={
 })
 
 #Create common features for both cities
+
 #Lag features to capture temporal dependencies
 df["lag_1"] = df["load_edm_mw"].shift(1)
 df["lag_24"] = df["load_edm_mw"].shift(24) #yesterday same hour
 df["lag_168"] = df["load_edm_mw"].shift(168) #Weekly lag
 
 #Rolling mean features to capture trends
-df["rolling_mean_24"] = df["load_edm_mw"].rolling(window=24).mean()
-df["rolling_mean_168"] = df["load_edm_mw"].rolling(window=168).mean()
-df["rolling_std_24"] = df["load_edm_mw"].rolling(window=24).std()
-df["rolling_std_168"] = df["load_edm_mw"].rolling(window=168).std()
+df["rolling_mean_24"] = df["load_edm_mw"].rolling(window=24).mean().shift(1)
+df["rolling_mean_168"] = df["load_edm_mw"].rolling(window=168).mean().shift(1)
+df["rolling_std_24"] = df["load_edm_mw"].rolling(window=24).std().shift(1)
+df["rolling_std_168"] = df["load_edm_mw"].rolling(window=168).std().shift(1)
 
-# Drop rows with NaN values introduced by lag and rolling features
-df = df.dropna()
+#Lag features to capture temporal dependencies
+df["lag_1"] = df["load_cgy_mw"].shift(1)
+df["lag_24"] = df["load_cgy_mw"].shift(24) #yesterday same hour
+df["lag_168"] = df["load_cgy_mw"].shift(168) #Weekly lag
+
+#Rolling mean features to capture trends
+df["rolling_mean_24"] = df["load_cgy_mw"].rolling(window=24).mean().shift(1)
+df["rolling_mean_168"] = df["load_cgy_mw"].rolling(window=168).mean().shift(1)
+df["rolling_std_24"] = df["load_cgy_mw"].rolling(window=24).std().shift(1)
+df["rolling_std_168"] = df["load_cgy_mw"].rolling(window=168).std().shift(1)
+
+
+# Drop rows with NaN values introduced by lag and rolling features, keeping some missing weather features as to not lose data
+df = df.dropna(subset=[
+    "lag_1", "lag_24", "lag_168", "rolling_mean_24", "rolling_mean_168", "rolling_std_24", "rolling_std_168"
+    ])
 
 #Setup forecast evaluation metrics
 def forecast_evaluation(y_true, y_pred):
