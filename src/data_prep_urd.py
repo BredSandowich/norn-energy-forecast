@@ -1,5 +1,4 @@
 # src/data_prep.py
-
 import pandas as pd
 from pathlib import Path
 import yaml
@@ -84,9 +83,14 @@ def merge_weather_load(df_weather: pd.DataFrame, df_load: pd.DataFrame) -> pd.Da
     weather_cols = ["temp_edm_C", "rel_hum_edm_pct", "wind_edm_kmh",
                     "temp_cgy_C", "rel_hum_cgy_pct", "wind_cgy_kmh"]
     
+    df_merged = df_merged.sort_values("Datetime")
+    df_merged = df_merged.set_index("Datetime")
+    
     for col in weather_cols:
-        df_merged[col] = df_merged[col].interpolate(limit=6)
-        df_merged[col] = df_merged[col].ffill()
+        df_merged[col] = df_merged[col].interpolate(method="time", limit=3)
+        df_merged[col] = df_merged[col].ffill(limit=3)
+    
+    df_merged = df_merged.reset_index()
     
     return df_merged
 
@@ -97,6 +101,19 @@ def save_processed(df: pd.DataFrame, proc_dir: Path, filename: str = "modelling_
     df.to_csv(output_path, index=False)
     print(f"Saved merged dataset to {output_path}")
     print(f"Shape: {df.shape}")
+
+
+#Production Validation checks 
+def validate_dataset(df: pd.DataFrame):
+    if not df["Datetime"].is_monotonic_increasing:
+        raise ValueError("Datetime is not sorted")
+    if not df["Datetime"].is_unique:
+        raise ValueError("Duplicate timestamps found")
+    
+    missing_percentage = df.isna().mean()
+    print(f"\nMissing values (%): {missing_percentage}")
+    
+    return df
 
 
 # =======================
@@ -114,4 +131,5 @@ if __name__ == "__main__":
     df_weather = load_weather(raw_dir)
     df_load = load_aeso(proc_dir, start_date=df_weather["Datetime"].min())
     df_merged = merge_weather_load(df_weather, df_load)
+    validate_dataset(df_merged)
     save_processed(df_merged, proc_dir)
