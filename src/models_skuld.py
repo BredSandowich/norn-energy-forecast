@@ -10,42 +10,48 @@ from xgboost import XGBRegressor
 
 #Define evaluation metrics
 def forecast_evaluation(y_true, y_pred):
-    error = y_true = y_pred
+    error = y_true - y_pred
     mae = mean_absolute_error(y_true, y_pred)
     rmse = np.sqrt(mean_squared_error(y_true, y_pred))
-    mape = np.mean(np.abs(error / y_true)) * 100
+    mape = np.mean(np.abs(error / np.where(y_true == 0, 1, y_true))) * 100
     return {"Error": error, "Mean Absolute Error": mae, "Root Mean Square Error": rmse, "Mean Absolute Percent Error": mape}
 
 
 #Baseline Forecasts: Seasonal Naive (Rolling last point), Naive Flat (last point method), Rolling Moving Average, Moving Average Flat, Holts winter (triple exponential smoothing), Combination "Ensemble", and Weighted Ensemble
 def seasonal_naive(y_train, horizon=24): #Rolling 24 hour
     last_day = y_train.iloc[-24:]
-    forecast = pd.Series(np.tile(last_day.values, int(np.ceil(horizon/24)))[:horizon], index= y_train.index[-horizon:]) 
+    forecast = pd.Series(np.tile(last_day.values, int(np.ceil(horizon/24)))[:horizon]) 
     return forecast
 
 def flat_naive(y_train, horizon=24): #Last point (baseline - awful forecast for longer range, benchmark line more than anything)
     last_value = y_train.iloc[-1]
-    forecast = pd.Series([last_value]*horizon, index= y_train.index[-horizon:])
+    forecast = pd.Series([last_value]*horizon)
     return forecast
 
 def rolling_moving_avg(y_train, window_days=7, horizon=24): 
     window_hours = window_days *24
     last_window = y_train.iloc[-window_hours:]
     last_window_reshaped = last_window.values.reshape(window_days, 24)
-    forecast_values = last_window_reshaped.mean(axis=0)
-    forecast = pd.Series(forecast_values, index= y_train.index[-horizon:])
+    values = np.tile(forecast_values, int(np.ceil(horizon /24)))[:horizon]
+    forecast = pd.Series(values)
     return forecast
 
 def flat_mov_avg(y_train, window=7, horizon=24): #benchmark again more than anything as it produces a flat forecast
+    window_hours = window *24 #7 day average for a benchmark forecast
     avg_value = y_train.rolling(window).mean().iloc[-1]
-    forecast = pd.Series([avg_value]*horizon, index= y_train.index[-horizon:])
+    forecast = pd.Series([avg_value]*horizon)
     return forecast
+
+def holt_winters(y_train, horizon=24):
+    model = ExponentialSmoothing( y_train, seasonal = "add", seasonal_periods= 24).fit()
+    forecast = model.forecast(horizon)
+    return pd.Series(forecast.values)
 
 def simply_ensemble(*forecasts): #Combine 2 forecasts to see if it improves either
     combined = sum(forecasts) / len(forecasts)
     return combined
 
-def weighted_ensemble(*forecasts): #Combine 2 forecasts weighting one more than other to see if it improves either
+def weighted_ensemble(forecasts, mapes): #Combine 2 forecasts weighting one more than other to see if it improves either
     inv_mape = [1/m for m in mapes]
     weights = [v/sum(inv_mape) for v in inv_mape]
     combined = sum(f*w for f,w in zip(forecasts, weights))
@@ -57,7 +63,7 @@ def walk_forward_validation(df, features, target, model, horizon=1): #Update the
     predictions, actuals, timestamps = [], [], []
     for i in range(len(df)-horizon):
         train = df.iloc[:i+horizon]
-        test = df.iloc0i+horizon:i+horizon+1]
+        test = df.iloc[i+horizon:i+horizon+1]
         if len(test)==0:
             break
         
@@ -71,7 +77,7 @@ def walk_forward_validation(df, features, target, model, horizon=1): #Update the
         
         predictions.append(prediction)
         actuals.append(Y_test.values[0])
-        timestampe.append(test["Datetime"].values[0])
+        timestamps.append(test["Datetime"].values[0])
     return pd.DataFrame({"Datetime": timestamps, "Actual": actuals, "Prediction": predictions})
 
 #Linear Regression
@@ -87,7 +93,7 @@ def train_rand_forest(df, features, target, horizon=1, n_estimators = 100, max_d
     return results, rf_model
 
 #XGBoost --> Trying XGBoost as I have read it is a good time series forecasting tool for ML
-def train_xgboost(df, feautres, target, horizon=1, **kwargs):
+def train_xgboost(df, features, target, horizon=1, **kwargs):
     xgb_model = XGBRegressor(**kwargs)
-    results = walk_forward_validation(df, features, target, xgb_model, horizon=horizon
+    results = walk_forward_validation(df, features, target, xgb_model, horizon=horizon)
     return results, xgb_model
