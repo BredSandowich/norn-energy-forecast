@@ -136,13 +136,11 @@ edm_weekend = edmonton_df.groupby('is_weekend')['load_edm_mw'].mean()
 axes[0].bar(['Weekday', 'Weekend'], edm_weekend.values)
 axes[0].set_title('Edmonton: Average Load by Weekday/Weekend')
 axes[0].set_ylabel('Average Load (MW)')
-print(edm_weekend.values)
 
 cgy_weekend = calgary_df.groupby('is_weekend')['load_cgy_mw'].mean()
 axes[1].bar(['Weekday', 'Weekend'], cgy_weekend.values)
 axes[1].set_title('Calgary: Average Load by Weekday/Weekend')
 axes[1].set_ylabel('Average Load (MW)')
-print(cgy_weekend.values)
 
 #plt.tight_layout()
 #plt.savefig('notebooks/avg_load_weekday_weekend.png')
@@ -225,7 +223,7 @@ axes[1].grid(True)
 save_plot("avg_load_by_doweek.png")
 print("Average load by day of week plots saved to reports/avg_load_by_doweek.png")
 
-
+'''
 #Correlation Heatmap Edmonton
 plt.figure(figsize=(10, 6))
 sns.heatmap(edmonton_df[["load_edm_mw", "temp_edm_C","rel_hum_edm_pct", "wind_edm_kmh"]].corr(), annot=True, cmap='coolwarm')
@@ -269,7 +267,7 @@ sns.scatterplot(x="temp_cgy_C", y="load_cgy_mw", data=calgary_df, alpha=0.3)
 sns.lineplot(x="temp_cgy_C", y="load_cgy_mw", data=cgy_temp_load_smoothed, color='red')
 plt.title("Calgary Load vs Temperature")
 save_plot("temp_vs_load_cgy.png")
-
+'''
 
 #Feature engineering (commonly used feature such as heating degree days and cooling degree days)
 HDD_base = 18.0
@@ -300,6 +298,67 @@ plt.title("Calgary Load vs Cooling Degree Days")
 plt.savefig('reports/cgy_load_vs_CDD.png')
 print("Edmonton Load vs Cooling Degree Days plot saved to reports/cgy_load_vs_CDD.png")
 
+#Visualization of load and temp for 2024
+latest_year = df["year"].max()
+df_latest_year = df[df["year"] == latest_year].copy()
+
+fig, ax1 = plt.subplots(figsize=(14,6))
+#Load shown on left axis
+ax1.plot(df_latest_year["Datetime"], df_latest_year["load_edm_mw"], color= "blue", label = "Load (MW)")
+ax1.set_xlabel("Datetime")
+ax1.set_ylabel("Load (MW)", color="Blue")
+ax1.tick_params(axis='y', labelcolor="blue")
+
+#Temp shown on right axis
+ax2 = ax1.twinx()
+ax2.plot(df_latest_year["Datetime"], df_latest_year["temp_edm_C"], color= "red", label = "Temp C")
+ax2.set_ylabel("Temp (°C)", color="Red")
+ax2.tick_params(axis='y', labelcolor="red")
+
+plt.title(f"Edmonton Load vs Temperature ({latest_year})")
+
+# Combine legends
+lines_1, labels_1 = ax1.get_legend_handles_labels()
+lines_2, labels_2 = ax2.get_legend_handles_labels()
+plt.legend(lines_1 + lines_2, labels_1 + labels_2, loc='upper right')
+
+save_plot("load_vs_temp_timeseries.png")
+
+
+#Highlight the HDD and CDD for interest sake of highlighting extreme temp. events
+edmonton_df["HDD"] = (HDD_base - df_latest_year["temp_edm_C"]).clip(lower=0)
+edmonton_df["CDD"] = (df_latest_year["temp_edm_C"] - CDD_base).clip(lower=0)  
+
+# Define extreme thresholds (tune as needed)
+extreme_cold = df_latest_year["temp_edm_C"] < -20 #df_latest_year["temp_edm_C"].quantile(0.9)
+extreme_hot = df_latest_year["temp_edm_C"] > 25 #df_latest_year["temp_edm_C"].quantile(0.9)
+
+fig, ax1 = plt.subplots(figsize=(14, 6))
+
+# Load
+ax1.plot(df_latest_year['Datetime'], df_latest_year['load_edm_mw'], color='blue', label='Load (MW)')
+
+# Highlight extreme points
+ax1.scatter(df_latest_year.loc[extreme_cold, 'Datetime'],
+            df_latest_year.loc[extreme_cold, 'load_edm_mw'],
+            color='cyan', label='Extreme Cold', s=10)
+
+ax1.scatter(df_latest_year.loc[extreme_hot, 'Datetime'],
+            df_latest_year.loc[extreme_hot, 'load_edm_mw'],
+            color='orange', label='Extreme Heat', s=10)
+
+ax1.set_ylabel("Load (MW)")
+
+# Temperature axis
+ax2 = ax1.twinx()
+ax2.plot(df_latest_year['Datetime'], df_latest_year['temp_edm_C'], color='red', alpha=0.5)
+
+plt.title(f"Extreme Temperature Events vs Load ({latest_year})")
+plt.legend()
+
+save_plot("extreme_temp_vs_load.png")
+
+
 
 #Mean load printouts
 print("\nMean Load (MW)by hour:")
@@ -308,5 +367,10 @@ print(df.groupby('hour')[['load_edm_mw', 'load_cgy_mw']].mean())
 print("\nMean Load (MW) by month:")
 print(df.groupby('month')[['load_edm_mw', 'load_cgy_mw']].mean())
 
+print(f"\nEdmonton correlation with temperature: {edmonton_df[["load_edm_mw","temp_edm_C"]].corr()}")
+print(f"\nCalgary correlation with temperature: {calgary_df[["load_cgy_mw","temp_cgy_C"]].corr()}")
+
+print("\nPeak Load by Month:")
+print(df.groupby('month')[['load_edm_mw', 'load_cgy_mw']].max())
 
 print("\nAnalysis complete. Plots saved in:", report_dir)
