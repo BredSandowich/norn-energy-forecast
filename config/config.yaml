@@ -1,8 +1,10 @@
 paths:
   raw_data: data/raw/
   processed_data: data/processed/
+  eda: notebooks/notebooks/exploratory - Verdandi
   models: models/
   forecasts: forecasts/
+  reports: reports/figures/
 
 data:
   target_col: 'Load'
