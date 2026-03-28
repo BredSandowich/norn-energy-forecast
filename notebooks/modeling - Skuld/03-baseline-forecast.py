@@ -62,7 +62,7 @@ plt.xlabel('Time')
 plt.ylabel('Load (MW)')
 plt.legend()
 plt.tight_layout()
-plt.savefig('notebooks/seasonal_naive_forecast.png')
+plt.savefig('reports/model/seasonal_naive_forecast.png')
 
 metrics_df = pd.DataFrame(columns=['Model', "Error", 'MAE', 'RMSE', 'MAPE'])
 naive_results = forecast_evaluation(test_naive, naive)
@@ -100,7 +100,7 @@ plt.xlabel('Time')
 plt.ylabel('Load (MW)')
 plt.legend()
 plt.tight_layout()
-plt.savefig('notebooks/rolling_moving_avg_forecast.png')
+plt.savefig('reports/model/rolling_moving_avg_forecast.png')
 
 moving_avg_results = forecast_evaluation(test_naive, moving_avg_forecast)
 moving_avg_row = pd.DataFrame({'Model': ['Rolling Moving Average'], "Error": [moving_avg_results[0]], 'MAE': [moving_avg_results[1]], 'RMSE': [moving_avg_results[2]], 'MAPE': [moving_avg_results[3]]})
@@ -141,7 +141,7 @@ plt.xlabel('Time')
 plt.ylabel('Load (MW)')
 plt.legend()
 plt.tight_layout()
-plt.savefig('notebooks/forecast_comparison.png')
+plt.savefig('reports/model/forecast_comparison.png')
 
 
 #Bootstrapping top two baseline forecasts (Seasonal Naive and Rolling Moving Average) from MAPE results
@@ -170,7 +170,7 @@ plt.xlabel('MAPE')
 plt.ylabel('Frequency')
 plt.legend()
 plt.tight_layout()
-plt.savefig('notebooks/bootstrap_mape_comparison.png')
+plt.savefig('reports/model/bootstrap_mape_comparison.png')
 
 
 #Combining top two forecasts into a simple ensemble by averaging their predictions
@@ -207,4 +207,4 @@ plt.xlabel('Time')
 plt.ylabel('Load (MW)')
 plt.legend()
 plt.tight_layout()
-plt.savefig('notebooks/ensemble_forecast_comparison.png')
+plt.savefig('reports/model/ensemble_forecast_comparison.png')

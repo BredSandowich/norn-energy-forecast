@@ -134,3 +134,22 @@ if __name__ == "__main__":
     df_merged = merge_weather_load(df_weather, df_load)
     validate_dataset(df_merged)
     save_processed(df_merged, proc_dir)
+    
+    
+#Wrapper for run_pipeline_norn.py file
+def build_dataset(raw_dir: Path, proc_dir: Path) -> pd.DataFrame:
+    """Full data pipeline: load -> merge -> validate -> return"""
+    
+    df_weather = load_weather(raw_dir)
+    df_load = load_aeso(proc_dir, start_date=df_weather["Datetime"].min())
+    
+    df_merged = merge_weather_load(df_weather, df_load)
+    df_merged = df_merged.rename(columns={
+    "EDMONTON": "load_edm_mw",
+    "CALGARY": "load_cgy_mw"
+    })
+    
+    df_merged = validate_dataset(df_merged)
+    
+    return df_merged
+    

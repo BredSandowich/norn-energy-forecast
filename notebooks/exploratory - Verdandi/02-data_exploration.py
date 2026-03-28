@@ -280,22 +280,22 @@ calgary_df["CDD"] = (calgary_df["temp_cgy_C"] - CDD_base).clip(lower=0)
 #Visualization of features HDD/CDD
 sns.scatterplot(x="HDD", y="load_edm_mw", data=edmonton_df,alpha=0.3)
 plt.title("Edmonton Load vs Heating Degree Days")
-plt.savefig('reports/edm_load_vs_HDD.png')
+plt.savefig('reports/figures/edm_load_vs_HDD.png')
 print("Edmonton Load vs Heating Degree Days plot saved to reports/edm_load_vs_HDD.png")      
 
 sns.scatterplot(x="CDD", y="load_edm_mw", data=edmonton_df, alpha=0.3,color='orange')
 plt.title("Edmonton Load vs Cooling Degree Days")
-plt.savefig('reports/edm_load_vs_CDD.png')
+plt.savefig('reports/figures/edm_load_vs_CDD.png')
 print("Edmonton Load vs Cooling Degree Days plot saved to reports/edm_load_vs_CDD.png")
 
 sns.scatterplot(x="HDD", y="load_cgy_mw", data=calgary_df,alpha=0.3)
 plt.title("Calgary Load vs Heating Degree Days")
-plt.savefig('reports/cgy_load_vs_HDD.png')
+plt.savefig('reports/figures/cgy_load_vs_HDD.png')
 print("Calgary Load vs Heating Degree Days plot saved to reports/cgy_load_vs_HDD.png")      
 
 sns.scatterplot(x="CDD", y="load_cgy_mw", data=calgary_df, alpha=0.3,color='orange')
 plt.title("Calgary Load vs Cooling Degree Days")
-plt.savefig('reports/cgy_load_vs_CDD.png')
+plt.savefig('reports/figures/cgy_load_vs_CDD.png')
 print("Edmonton Load vs Cooling Degree Days plot saved to reports/cgy_load_vs_CDD.png")
 
 #Visualization of load and temp for 2024

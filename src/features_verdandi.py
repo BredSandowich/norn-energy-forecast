@@ -5,9 +5,11 @@ import pandas as pd
 #Add time features to dataset
 def add_time_features(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
-    df["hour"] = df["Datetime"].dt.hour
-    df["day_of_week"] = df["Datetime"].dt.dayofweek
+    df["year"] = df["Datetime"].dt.year
     df["month"] = df["Datetime"].dt.month
+    df["day"] = df["Datetime"].dt.day
+    df["day_of_week"] = df["Datetime"].dt.dayofweek
+    df["hour"] = df["Datetime"].dt.hour
     df["is_weekend"] = df["day_of_week"].isin([5,6]).astype(int)
     return df
     
@@ -16,7 +18,7 @@ def add_time_features(df: pd.DataFrame) -> pd.DataFrame:
 #Lag 24 chosen to capture seasonality within 24 hours ie) dataset is hourly for load demand
 #Lag 168 chosen to capture weekly seasonality ie) 7days x 24hrs
 def add_lag_features(df: pd.DataFrame, target_col: str) -> pd.DataFrame:
-    df.copy()
+    df = df.copy()
     df[f"{target_col}_lag_1"] = df[target_col].shift(1)
     df[f"{target_col}_lag_24"] = df[target_col].shift(24)
     df[f"{target_col}_lag_168"] = df[target_col].shift(168)
@@ -33,7 +35,7 @@ def add_rolling_features(df: pd.DataFrame, target_col: str) -> pd.DataFrame:
     df[f"{target_col}_rolling_std_168"] = df[target_col].rolling(168).std().shift(1)
     return df
 
-#Add all features to copied dataframe for full dataset
+#Add all features to copied dataframe for full dataset (for pipeline usage in run_pipeline_verdandi.py)
 def prepare_features(df: pd.DataFrame, target_col: str) -> pd.DataFrame:
     df = add_time_features(df)
     df = add_lag_features(df, target_col)

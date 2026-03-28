@@ -94,7 +94,7 @@ target = 'load_edm_mw'
 
 #Run walk forward validation with Random Forest
 wf_rf_model = walk_forward_validation(edmonton_df, features, target, RandomForestRegressor(n_estimators=100, max_depth=10, random_state=42), horizon=1)
-wf_rf_results.to_csv('notebooks/rf_walk_forward_results.csv', index=False)
+wf_rf_results.to_csv('reports/model/rf_walk_forward_results.csv', index=False)
 print("\nWalk forward Random Forest walk forward validation results saved to notebooks/rf_walk_forward_results.csv")
 
 #Coefficient importance from Random Forest
@@ -105,7 +105,7 @@ plt.title('Feature Importance from Random Forest')
 plt.xlabel('Importance')
 plt.ylabel('Feature')
 plt.tight_layout()
-plt.savefig('notebooks/rf_feature_importance.png')
+plt.savefig('reports/model/rf_feature_importance.png')
 print("\nRandom Forest feature importance plot saved to notebooks/rf_feature_importance.png")
 
 # Evaluate Random Forest forecast
@@ -123,7 +123,7 @@ plt.ylabel('Load (MW)')
 plt.legend()
 plt.xticks(rotation=45)
 plt.tight_layout()
-plt.savefig('notebooks/wf_rf_forecast.png')
+plt.savefig('reports/model/wf_rf_forecast.png')
 print("\nRandom Forest forecast plot saved to notebooks/wf_rf_forecast.png")
 
 
@@ -136,7 +136,7 @@ upper_con_intval = np.percentile(all_tree_predictions, 97.5, axis=0)
 #Add confidence interval to the forecast plot
 plt.fill_between(test_df['DATETIME'], lower_con_intval, upper_con_intval, color='gray', alpha=0.3, label='95% Confidence Interval')
 plt.legend()
-plt.savefig('notebooks/rf_forecast_with_confidence.png')
+plt.savefig('reports/model/rf_forecast_with_confidence.png')
 print("\nRandom Forest forecast with confidence interval plot saved to notebooks/rf_forecast_with_confidence.png")
 
 
@@ -157,7 +157,7 @@ plt.title('Feature Importance from Linear Regression')
 plt.xlabel('Coefficient')
 plt.ylabel('Feature')
 plt.tight_layout()
-plt.savefig('notebooks/lr_feature_importance.png')
+plt.savefig('reports/model/lr_feature_importance.png')
 print("\nLinear Regression feature importance plot saved to notebooks/lr_feature_importance.png")
 
 #Plot actual vs forecast Linear Regression
@@ -170,7 +170,7 @@ plt.ylabel('Load (MW)')
 plt.legend()
 plt.xticks(rotation=45)
 plt.tight_layout()
-plt.savefig('notebooks/lr_forecast.png')
+plt.savefig('reports/model/lr_forecast.png')
 print("\nLinear Regression forecast plot saved to notebooks/lr_forecast.png")
 
 #Ensemble Seasonal Naive Forecast and Random Forest
@@ -188,7 +188,7 @@ plt.ylabel('Load (MW)')
 plt.legend()
 plt.xticks(rotation=45)
 plt.tight_layout()
-plt.savefig('notebooks/ensemble_forecast.png')
+plt.savefig('reports/model/ensemble_forecast.png')
 print("\nEnsemble forecast plot saved to notebooks/ensemble_forecast.png")
 
 
@@ -214,5 +214,5 @@ plt.ylabel('Load (MW)')
 plt.legend()
 plt.xticks(rotation=45)
 plt.tight_layout()
-plt.savefig('notebooks/xgb_forecast.png')
+plt.savefig('reports/model/xgb_forecast.png')
 print("\nXGBoost forecast plot saved to notebooks/xgb_forecast.png")
