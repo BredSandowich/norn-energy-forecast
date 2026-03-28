@@ -13,4 +13,6 @@ These files are required for reproducing the project:
 1. Go to the AESO data request URL.
 2. Click each file hyperlink to download it.
 3. Save the files in `data/raw/`.
-4. Run: python src/data_prep.py to consolidate into one working file.
+4. Can use note notebooks/data- Urd/ 02-merge-load-weather.py to clean own AESO load files
+5. (Optional) Run: python src/data_prep_urd.py to consolidate into one working file (can use and the pre-cleaned AESO files in repo)
+6. run_pipeline_norn.py utilizes data_prep_urd.py functions and pre-saved cleaned dataset file saved in repo
