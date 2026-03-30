@@ -1,7 +1,8 @@
 paths:
   raw_data: data/raw/
   processed_data: data/processed/
-  eda: notebooks/notebooks/exploratory - Verdandi
+  notebooks: notebooks/
+  eda: notebooks/exploratory_Verdandi
   models: models/
   forecasts: forecasts/
   reports: reports/figures/
@@ -10,9 +11,22 @@ data:
   target_col: 'Load'
   datetime_col: 'Datetime'
 
+features:
+  lags: [1, 24, 168]
+  rolling_windows: [24, 168]
+
 model:
+  type: random_forest
+
+model_split:
   random_state: 42
   test_size: 0.2
+
+training:
+  Start_date: "2018-01-01"
+  
+split: 
+  split_date: "2023-01-01"
 
 targets:
   edmonton: EDMONTON

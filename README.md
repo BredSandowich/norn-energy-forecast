@@ -5,7 +5,7 @@ Norn is a time-series forecasting project that predicts hourly electricity deman
 
 As with other forecasting projects I chose to name the project after the three Norns of Norse mythology.  I just find it fun to represent forecasts with the Norns who represent the past (Urd), present (Verðandi), and the future (Skuld).  To me this mirrors the structure of the workflow digesting historical data (past), analyze the current system state (present), and predict the future electricity demand (future).  With that being said the final forecast will be named Skuld, after the Norn of what is yet to come.
 
-I figured this would be a good portfolio project after coming across a job posting and investigating Kaggle datasets from Kaggle. Unfortunately, I couldn't remember my Kaggle password so I looked for datasets more closely aligned with the job posting and came across real electricity systems data published by the Alberta Electric System Operator (AESO) as well as weather data from Environment and Climate Change Canada (ECCC).  I realize there is also weather data on Meteostat API that I may investigate as well but this project will evolve as I dig into the datasets that I have.  The goal is to approximate a simplified version of forecasting workflows used by power market analysts and energy trading teams.
+I figured this would be a good portfolio project after coming across a job posting and investigating Kaggle datasets from Kaggle. Unfortunately, I couldn't remember my Kaggle password so I looked for datasets more closely aligned with the job posting and came across real electricity systems data published by the Alberta Electric System Operator (AESO) as well as weather data from the Government of Canada historical weather data.  I realize there is also weather data on Environment and Climate Change Canada (ECCC) and Meteostat API that I may investigate as well but this project will evolve as I dig into the datasets that I have.  The goal is to approximate a simplified version of forecasting workflows used by power market analysts and energy trading teams.
 
 ## Goals
 
@@ -28,9 +28,7 @@ I figured this would be a good portfolio project after coming across a job posti
 - `data/` (Urd - past) : raw AESO load and GOC weather data (not committed to repo. AESO load data currently requires manual download; future work will include automated ingestion from AESO if available), and processed modelling datasets.
 - `notebooks/` (Verðandi & Skuld – present & future) : exploratory analysis, feature engineering, model training experiments, and forecast analysis notebooks..
 - `src/` : reusable Python scripts for data loading and prep, feature engineering, and modelling (as well as forecasting pipelines in future developments).
-- `models/` : serialized model artifacts
-- `forecasts/` : generated forecast outputs
-= `scripts/` : utility scripts
+- `scripts/` : utility scripts
 - `reports/` : figures and generated reports.
 
 ## Getting started
