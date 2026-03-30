@@ -113,7 +113,11 @@ def validate_dataset(df: pd.DataFrame):
     
     missing_percentage = df.isna().mean()
     print(f"\nMissing values (%): {missing_percentage}")
-    
+    print("Datetime validation")
+    print(df["Datetime"].diff().value_counts())
+    print("Correlation")
+    print(df[["EDMONTON","temp_edm_C"]].corr())
+
     return df
 
 

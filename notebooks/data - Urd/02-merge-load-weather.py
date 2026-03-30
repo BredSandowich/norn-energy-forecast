@@ -97,15 +97,15 @@ df_merged["is_weekend"] = df_merged["day_of_week"].isin([5,6]).astype(int)
 df_merged["edm_weather_missing"] = df_merged[["temp_edm_C", "rel_hum_edm_pct", "wind_edm_kmh"]].isna().any(axis=1).astype(int)
 df_merged["cgy_weather_missing"] = df_merged[["temp_cgy_C", "rel_hum_cgy_pct", "wind_cgy_kmh"]].isna().any(axis=1).astype(int)
 
-#Interpolate the gaps in temperature data instead of dropping them for future feature modelling in timeseeries
-df_merged["temp_edm_C"] = df_merged["temp_edm_C"].interpolate(limit=6)
-df_merged["temp_cgy_C"] = df_merged["temp_cgy_C"].interpolate(limit=6)
+#Interpolate the gaps in temperature data instead of dropping them for future feature modelling in time series. Will tighten up with stricter interpolation in final pipeline
+df_merged["temp_edm_C"] = df_merged["temp_edm_C"].interpolate(limit=3)
+df_merged["temp_cgy_C"] = df_merged["temp_cgy_C"].interpolate(limit=3)
 
-df_merged["rel_hum_edm_pct"] = df_merged["rel_hum_edm_pct"].interpolate(limit=6)
-df_merged["rel_hum_cgy_pct"] = df_merged["rel_hum_cgy_pct"].interpolate(limit=6)
+df_merged["rel_hum_edm_pct"] = df_merged["rel_hum_edm_pct"].interpolate(limit=3)
+df_merged["rel_hum_cgy_pct"] = df_merged["rel_hum_cgy_pct"].interpolate(limit=3)
 
-df_merged["wind_edm_kmh"] = df_merged["wind_edm_kmh"].interpolate(limit=6)
-df_merged["wind_cgy_kmh"] = df_merged["wind_cgy_kmh"].interpolate(limit=6)
+df_merged["wind_edm_kmh"] = df_merged["wind_edm_kmh"].interpolate(limit=3)
+df_merged["wind_cgy_kmh"] = df_merged["wind_cgy_kmh"].interpolate(limit=3)
 
 #print(df_merged.isna().mean())
 
