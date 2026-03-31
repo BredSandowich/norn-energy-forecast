@@ -2,20 +2,14 @@
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import mean_absolute_error, mean_squared_error
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from xgboost import XGBRegressor
 
-#Define evaluation metrics
-def forecast_evaluation(y_true, y_pred):
-    error = y_true - y_pred
-    mae = mean_absolute_error(y_true, y_pred)
-    rmse = np.sqrt(mean_squared_error(y_true, y_pred))
-    mape = np.mean(np.abs(error / np.where(y_true == 0, 1, y_true))) * 100
-    return {"Error": error, "Mean Absolute Error": mae, "Root Mean Square Error": rmse, "Mean Absolute Percent Error": mape}
 
+def create_linear_reg():
+    return LinearRegression()
 
 #Baseline Forecasts: Seasonal Naive (Rolling last point), Naive Flat (last point method), Rolling Moving Average, Moving Average Flat, Holts winter (triple exponential smoothing), Combination "Ensemble", and Weighted Ensemble
 def seasonal_naive(y_train, horizon=24): #Rolling 24 hour
@@ -48,7 +42,7 @@ def holt_winters(y_train, horizon=24):
     forecast = model.forecast(horizon)
     return pd.Series(forecast.values)
 
-def simply_ensemble(*forecasts): #Combine 2 forecasts to see if it improves either
+def simple_ensemble(*forecasts): #Combine 2 forecasts to see if it improves either
     combined = sum(forecasts) / len(forecasts)
     return combined
 
@@ -59,42 +53,29 @@ def weighted_ensemble(forecasts, mapes): #Combine 2 forecasts weighting one more
     return combined
 
 
-#Machine Learning Forecasts
-def walk_forward_validation(df, features, target, model, horizon=1): #Update the model with new data continuously
-    predictions, actuals, timestamps = [], [], []
-    for i in range(len(df)-horizon):
-        train = df.iloc[:i+horizon]
-        test = df.iloc[i+horizon:i+horizon+1]
-        if len(test)==0:
-            break
-        
-        x_train = train[features]
-        y_train = train[target]
-        X_test = test[features]
-        Y_test = test[target]
-        
-        model.fit(x_train, y_train)
-        prediction = model.predict(X_test)[0]
-        
-        predictions.append(prediction)
-        actuals.append(Y_test.values[0])
-        timestamps.append(test["Datetime"].values[0])
-    return pd.DataFrame({"Datetime": timestamps, "Actual": actuals, "Prediction": predictions})
+
+##Machine Learning Forecasts
 
 #Linear Regression
-def train_lin_reg(df, features, target, horizon=1):
+def create_lin_reg():
     lr_model = LinearRegression()
-    results = walk_forward_validation(df,features, target, lr_model, horizon)
-    return results, lr_model
+    return lr_model
 
 #Random Forest Regression
-def train_rand_forest(df, features, target, horizon=1, n_estimators = 60, max_depth=10, random_state=42, n_jobs= -1): #Future development is refining the parameters, going with sckit recommended for starters with a bit of manual tinkering
-    rf_model = RandomForestRegressor(n_estimators= n_estimators, max_depth=max_depth,random_state=random_state)
-    results = walk_forward_validation(df, features, target, rf_model,horizon)
-    return results, rf_model
+def create_rand_forest(n_estimators = 60, max_depth=10, random_state=42, n_jobs= -1): #Future development is refining the parameters, going with sckit recommended for starters with a bit of manual tinkering
+    rf_model = RandomForestRegressor(n_estimators= n_estimators, max_depth=max_depth,random_state=random_state, n_jobs=n_jobs)
+    return rf_model
 
 #XGBoost --> Trying XGBoost as I have read it is a good time series forecasting tool for ML
-def train_xgboost(df, features, target, horizon=1, **kwargs):
+def create_xgboost(**kwargs):
     xgb_model = XGBRegressor(**kwargs)
-    results = walk_forward_validation(df, features, target, xgb_model, horizon=horizon)
-    return results, xgb_model
+    return xgb_model
+
+
+#Fit and use forecast functions
+def fit_model(model, x_train, y_train):
+    model.fit(x_train, y_train)
+    return model
+
+def predict_model(model, x_test):
+    return model.predict(x_test)

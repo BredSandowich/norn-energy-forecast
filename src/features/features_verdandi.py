@@ -29,7 +29,7 @@ def add_lag_features(df: pd.DataFrame, target_col: str) -> pd.DataFrame:
 #Rolling mean/std 24 and 168 are for hours/day and hours/week. Can expand if wanted for monthly hours
 #Shift is used to not have data leakage as far as model seeing the value it is trying to predict (grrr)
 def add_rolling_features(df: pd.DataFrame, target_col: str) -> pd.DataFrame:
-    df = df.copy()
+    df = df.copy()  
     df[f"{target_col}_rolling_mean_24"] = df[target_col].rolling(24).mean().shift(1)
     df[f"{target_col}_rolling_mean_168"] = df[target_col].rolling(168).mean().shift(1)
     df[f"{target_col}_rolling_std_24"] = df[target_col].rolling(24).std().shift(1)
@@ -49,6 +49,8 @@ def add_weather_features(df: pd.DataFrame) -> pd.DataFrame:
     df["HDD_cgy"] = (HDD_base - df["temp_cgy_C"]).clip(lower=0)
     df["CDD_cgy"] = (df["temp_cgy_C"] - CDD_base).clip(lower=0)
     
+    return df
+    
 
 #Add all features to copied dataframe for full dataset (for pipeline usage in run_pipeline_verdandi.py)
 def prepare_features(df: pd.DataFrame, target_col: str) -> pd.DataFrame:
@@ -65,7 +67,9 @@ def prepare_features(df: pd.DataFrame, target_col: str) -> pd.DataFrame:
         f"{target_col}_rolling_mean_24", 
         f"{target_col}_rolling_mean_168",  
         f"{target_col}_rolling_std_24",  
-        f"{target_col}_rolling_std_168"
+        f"{target_col}_rolling_std_168",
     ])
+    
+    df= df.dropna()
     return df
 

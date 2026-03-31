@@ -148,12 +148,12 @@ def build_dataset(raw_dir: Path, proc_dir: Path) -> pd.DataFrame:
     df_load = load_aeso(proc_dir, start_date=df_weather["Datetime"].min())
     
     df_merged = merge_weather_load(df_weather, df_load)
+    df_merged = validate_dataset(df_merged)
+    
     df_merged = df_merged.rename(columns={
     "EDMONTON": "load_edm_mw",
     "CALGARY": "load_cgy_mw"
     })
-    
-    df_merged = validate_dataset(df_merged)
-    
+        
     return df_merged
     
