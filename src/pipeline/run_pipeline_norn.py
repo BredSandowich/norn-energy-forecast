@@ -126,8 +126,8 @@ for name, model in ml_models.items():
         "Model": fitted_model,
         "MAE": mae,
         "MAPE": mape,
-        "Error": Y_test_series.values - forecast.values,
-        "Percent Error": ((Y_test_series.values - forecast.values)/Y_test_series.values)*100
+        "Error": Y_test_series.values - prediction,
+        "Percent Error": ((Y_test_series.values - prediction)/Y_test_series.values)*100
     }
 
 
@@ -154,7 +154,7 @@ for name, result_dict in ml_results.items():
     result_dict = result_dict["Results"]
     
     filename = f"{name.replace(' ', '_').lower()}_results.csv"
-    results_df.to_csv(output_dir /filename, index=False)
+    result_dict.to_csv(output_dir /filename, index=False)
     print(f"Saved {name} results -> {filename}")
 
 #Results summary
