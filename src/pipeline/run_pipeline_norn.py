@@ -85,7 +85,9 @@ features = [
     f'{target}_rolling_mean_24',
     f'{target}_rolling_mean_168',
     f'{target}_rolling_std_24',
-    f'{target}_rolling_std_168'
+    f'{target}_rolling_std_168',
+    'HDD_edm',
+    "CDD_edm"
 ]
 
 x_train = train[features]

@@ -38,8 +38,18 @@ def save_plot(filename):
 # Parse datetime
 df['Datetime'] = pd.to_datetime(df['Datetime'])
 
-#Extract Year for yearly trend analysis
+#Extract Year and other datetime features for trend analysis
 df["year"] = df["Datetime"].dt.year
+
+df = df.copy()
+df["year"] = df["Datetime"].dt.year
+df["month"] = df["Datetime"].dt.month
+df["day"] = df["Datetime"].dt.day
+df["day_of_week"] = df["Datetime"].dt.dayofweek
+df["hour"] = df["Datetime"].dt.hour
+df["is_weekend"] = df["day_of_week"].isin([5,6]).astype(int)
+df["day_of_year"] = df["Datetime"].dt.dayofyear
+
 
 # Rename columns for consistency
 df = df.rename(columns={
@@ -278,24 +288,32 @@ calgary_df["HDD"] = (HDD_base - calgary_df["temp_cgy_C"]).clip(lower=0)
 calgary_df["CDD"] = (calgary_df["temp_cgy_C"] - CDD_base).clip(lower=0)   
 
 #Visualization of features HDD/CDD
+plt.figure()
 sns.scatterplot(x="HDD", y="load_edm_mw", data=edmonton_df,alpha=0.3)
 plt.title("Edmonton Load vs Heating Degree Days")
 plt.savefig('reports/figures/edm_load_vs_HDD.png')
+plt.close()
 print("Edmonton Load vs Heating Degree Days plot saved to reports/edm_load_vs_HDD.png")      
 
+plt.figure()
 sns.scatterplot(x="CDD", y="load_edm_mw", data=edmonton_df, alpha=0.3,color='orange')
 plt.title("Edmonton Load vs Cooling Degree Days")
 plt.savefig('reports/figures/edm_load_vs_CDD.png')
+plt.close()
 print("Edmonton Load vs Cooling Degree Days plot saved to reports/edm_load_vs_CDD.png")
 
+plt.figure()
 sns.scatterplot(x="HDD", y="load_cgy_mw", data=calgary_df,alpha=0.3)
 plt.title("Calgary Load vs Heating Degree Days")
 plt.savefig('reports/figures/cgy_load_vs_HDD.png')
+plt.close()
 print("Calgary Load vs Heating Degree Days plot saved to reports/cgy_load_vs_HDD.png")      
 
+plt.figure()
 sns.scatterplot(x="CDD", y="load_cgy_mw", data=calgary_df, alpha=0.3,color='orange')
 plt.title("Calgary Load vs Cooling Degree Days")
 plt.savefig('reports/figures/cgy_load_vs_CDD.png')
+plt.close()
 print("Edmonton Load vs Cooling Degree Days plot saved to reports/cgy_load_vs_CDD.png")
 
 #Visualization of load and temp for 2024
