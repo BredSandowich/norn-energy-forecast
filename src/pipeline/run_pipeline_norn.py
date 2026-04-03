@@ -102,12 +102,14 @@ ml_models = {
 }
 
 ml_results = {}
+trained_models = {}
 
 for name, model in ml_models.items():
     print(f"\nTraining {name}")
     
-    #First we fit
+    #First we fit and retain trained model for scenario analysis
     fitted_model = fit_model(model, x_train, y_train_series)
+    trained_models[name] = fitted_model
     
     #Then we predict!
     prediction = predict_model(fitted_model, X_test)
@@ -134,7 +136,6 @@ for name, model in ml_models.items():
 
 
     print(f"{name} results: MAE={mae:.2f}, MAPE={mape:.2f}%")
-
 
 
 #Save outputs
@@ -204,3 +205,22 @@ plot_error_distribution(wf_results)
 #plot_forecast_sample(wf_results, model_name= "Random Forest")
 plot_forecast_sample(wf_results, model_name=best_model)
 plot_model_type_comparison(kpi_summary)
+
+print(f" The best model after back testing is {best_model}\n{kpi_summary.sort_values("MAE").iloc[0]}")
+
+###Scenario analysis
+print("Running scenario analysis")
+from analysis.scenarios_skuld import run_scenario, temp_increase_scenario, temp_decrease_scenario, demand_spike_scenario, extreme_scenario, plot_scenarios
+
+best_ml_model = trained_models["Random Forest"]
+base_preds = best_ml_model.predict(X_test)
+
+temp_up = run_scenario(best_ml_model, X_test, lambda X: temp_increase_scenario(X, 5))
+temp_down = run_scenario(best_ml_model, X_test, lambda X: temp_decrease_scenario(X, 5))
+
+plot_scenarios(
+    test["Datetime"], test[target], base_preds, 
+    {"+5°C Temp": temp_up["Prediction"],
+     "-5°C Temp": temp_down["Prediction"]
+    }
+)
