@@ -24,6 +24,15 @@ def flat_naive(y_train, horizon=24): #Last point (baseline - awful forecast for 
 
 def rolling_moving_avg(y_train, window_days=7, horizon=24): 
     window_hours = window_days *24
+    
+    max_full_days = len(y_train) // 24
+    if max_full_days==0:
+        last_val = y_train.iloc[-1]
+        return pd.Series([last_val]*horizon)
+    
+    window_days = min(window_days, max_full_days)
+    window_hours = window_days *24
+    
     last_window = y_train.iloc[-window_hours:]
     last_window_reshaped = last_window.values.reshape(window_days, 24)
     forecast_values = last_window_reshaped.mean(axis=0)
@@ -51,8 +60,6 @@ def weighted_ensemble(forecasts, mapes): #Combine 2 forecasts weighting one more
     weights = [v/sum(inv_mape) for v in inv_mape]
     combined = sum(f*w for f,w in zip(forecasts, weights))
     return combined
-
-
 
 ##Machine Learning Forecasts
 

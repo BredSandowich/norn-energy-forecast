@@ -174,3 +174,31 @@ print("\nSaved model summary → model_summary.csv")
 
 
 print(f"\nAll results saved to {output_dir}")
+
+
+#Incorporate back-testing on models for valuation
+from analysis.backtesting_urd import run_walk_forward_validation
+from evaluation.evaluation_orlog import plot_error_distribution, plot_error_over_time, plot_model_type_comparison, plot_forecast_sample, calculate_kpis
+
+baseline_models = {
+    "Seasonal Naive": seasonal_naive,
+    "Rolling Moving Avg": rolling_moving_avg,
+    "Flat Naive": flat_naive,
+    "Flat Moving Avg": flat_mov_avg}
+
+print("Running walk-forward backtesting!")
+wf_results = run_walk_forward_validation(df=df, features= features, target= target, ml_models = ml_models, baseline_models = baseline_models, fit_model= fit_model, predict_model= predict_model, horizon=24)
+
+kpi_summary = calculate_kpis(wf_results)
+wf_results.to_csv(output_dir / "walk_forward_results.csv", index=False)
+kpi_summary.to_csv(output_dir / "walk_forward_kpis.csv", index=False)
+#print(wf_results)
+print(kpi_summary)
+
+best_model = kpi_summary.sort_values("MAE").iloc[0]["Model"]
+
+plot_error_over_time(wf_results)
+plot_error_distribution(wf_results)
+#plot_forecast_sample(wf_results, model_name= "Random Forest")
+plot_forecast_sample(wf_results, model_name=best_model)
+plot_model_type_comparison(kpi_summary)
