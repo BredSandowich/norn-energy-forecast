@@ -50,9 +50,9 @@ This creates a full modeling lifecycle:
 
 ## Dataset Description
 ###Target Variables
+Representing the hourly electricity demand (MW) at time t.
 - load_edm_mw (primary)
 - load_cgy_mw (optional)
-Representing the hourly electricity demand (MW) at time t.
 
 ### Features
 **Weather**
