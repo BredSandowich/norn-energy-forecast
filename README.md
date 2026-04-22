@@ -2,25 +2,31 @@
 Machine learning project to forecast Alberta electricity demand using AESO data.
 
 ## Project Overview
-Norn Energy Forecast is a time-series forecasting project that predicts hourly electricity demand for Alberta's power grid using:
-- Alberta Electric Systems Operator (AESO) load data
-- Government of Canada historical weather data
-The goal is to approximate a simplified version of forecasting workflows used by:
+Norn Energy Forecast is a time-series forecasting project designed to predict hourly electricity demand for Alberta's power grid, with a primary focus on Edmonton.
+
+This project evolved to simulate what I imagine a simplified version of a workflows used by:
 - Power market analysts
 - Energy trading teams
 
+It combines:
+- Historical system load data from Alberta Electric Systems Operator (AESO) load data
+- Government of Canada weather data
+- Time-series modeling and machine learning
+- Walk-forward validation
+- Scenario-based analysis
+
 As with other forecasting projects I chose to name the project after the three Norns of Norse mythology.  I just find it fun to represent forecasts with the Norns who represent the past (Urd), present (Verðandi), and the future (Skuld).  To me this mirrors the structure of the workflow digesting historical data (past), analyze the current system state (present), and predict the future electricity demand (future).  With that being said the final forecast portion will be named after Skuld, the Norn of what is yet to come.
 
-I figured this would be a good portfolio practice project after coming across a job posting and investigating Kaggle datasets from Kaggle. Unfortunately, I couldn't remember my Kaggle password so I looked for datasets more closely aligned with the job posting and came across real electricity systems data published by the Alberta Electric System Operator (AESO) as well as weather data from the Government of Canada historical weather data.  I realize there is also weather data on Environment and Climate Change Canada (ECCC) and Meteostat API that I may investigate as well but this project will evolve as I dig into the datasets that I have.  The goal is to approximate a simplified version of forecasting workflows used by power market analysts and energy trading teams.
+I figured this would be a good portfolio practice project after coming across a job posting and investigating Kaggle datasets from Kaggle. Unfortunately, I couldn't remember my Kaggle password so I looked for datasets more closely aligned with the job posting and came across real electricity systems data published by the Alberta Electric System Operator (AESO) as well as weather data from the Government of Canada historical weather data.  I realize there is also weather data on Environment and Climate Change Canada (ECCC) and Meteostat API that I may investigate as well but this project will evolve as I dig into the datasets that I have.  For now the goal is to approximate a simplified version of forecasting workflows used by power market analysts and energy trading teams.
 
 ## The Norns Framework
 Inspired by the three Norns of Norse mythology, who govern fate:
-- Urðr (Past) → historical data
-- Verðandi (Present) → current state & features
+- Urðr (Past) → historical data and data preparation
+- Verðandi (Present) → current state & feature engineering
 - Skuld (Future) → forecasts
 Additional concepts:
 - Wyrd → interconnected system (validation & relationships)
-- Orlog → final outcome (evaluation & results)
+- Orlog → final outcomes (evaluation & results)
 
 This creates a full modeling lifecycle:
 1. Urðr → prepare the past (data_prep_urd.py)
@@ -44,9 +50,9 @@ This creates a full modeling lifecycle:
 
 ## Dataset Description
 ###Target Variables
+Representing the hourly electricity demand (MW) at time t.
 - load_edm_mw (primary)
 - load_cgy_mw (optional)
-Representing the hourly electricity demand (MW) at time t.
 
 ### Features
 **Weather**
