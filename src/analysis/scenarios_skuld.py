@@ -38,7 +38,7 @@ def demand_spike_scenario(X, target_col, spike_pct = 0.1):
 
 #Chaos scenario (combining scenarios)
 def extreme_scenario(X, target_col):
-    X= temp_increase_scenario(X, delta=8)
+    X= temp_increase_scenario(X, delta=15)
     X= demand_spike_scenario(X, target_col, spike_pct=0.15)
     return X
 

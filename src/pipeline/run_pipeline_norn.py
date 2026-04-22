@@ -218,6 +218,10 @@ base_preds = best_ml_model.predict(X_test)
 temp_up = run_scenario(best_ml_model, X_test, lambda X: temp_increase_scenario(X, 5))
 temp_down = run_scenario(best_ml_model, X_test, lambda X: temp_decrease_scenario(X, 5))
 
+#Check for most important features in model
+feat_imp = pd.Series(best_ml_model.feature_importances_, index=X_test.columns)
+print(feat_imp.sort_values(ascending=False))
+
 plot_scenarios(
     test["Datetime"], test[target], base_preds, 
     {"+5°C Temp": temp_up["Prediction"],
